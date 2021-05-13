@@ -25,12 +25,17 @@ function titulo(){
 #Muestra las diferentes interfaces inalambricas disponibles
 function w_interfaces(){
     OUTPUT=$(iw dev | awk '{if ($1=="Interface") print $2}')
+    i=1
     echo -e $WHITE
     if [ ${#OUTPUT} == 0 ]
     then
         echo -e "$BOLD_RED Error: $WHITE No se han encontrado interfaces inalambricas, no es posible continuar con el ataque"
     else
-        echo " ${OUTPUT}"
+	for interface in ${OUTPUT}
+	do
+	    echo -e "   $BOLD_WHITE $i.$WHITE $interface"
+	    i=$((i+1))
+	done
     fi
 }
 
