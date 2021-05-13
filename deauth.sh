@@ -14,10 +14,12 @@ function titulo(){
     echo  " \ \  __ \/\ \/\ __\ _______  /_   \  / __ \ / __ \  /\ \/\ \\\ \ \/\ \   _ \ "
     echo  "  \ \ \/\ \ \ \ \ \//\______\/\ \L\ \/\  __//\ \L\.\_\ \ \_\ \\\ \ \_\ \ \ \ \\ "
     echo  "   \ \_\ \_\ \_\ \_\\\/______/\ \___,_\ \____\ \__/.\_\\\ \____/ \ \__\\\ \_\ \_\ "
-    echo  "    \/_/\/_/\/_/\/_/          \/__,_ /\/____/\/__/\/_/ \/___/   \/__/ \/_/\/_/"
+    echo  "    \/_/\/_/\/_/\/_/          \/__,_ /\/____/\/__/\/_/ \/___/   \/__/ \/_/\/_/  V 1.0"
     echo -e $BOLD_WHITE
-    echo  "     Deautentificador via Aircrack.ng por Pablo Vilallave"
+    echo  "---------------[ Deautentificador via Aircrack.ng por PabloVilallave ]---------------"
+    echo  "-------------------[ Repo: https://github.com/Ousdeferro/Deauth ]--------------------"
 }
+
 
 titulo
 
