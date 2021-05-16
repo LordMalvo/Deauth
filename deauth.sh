@@ -26,7 +26,8 @@ function titulo(){
 #Muestra las diferentes interfaces inalambricas disponibles
 RANGO=0
 function w_interfaces(){
-    OUTPUT=$(iw dev | awk '{if ($1=="Interface") print $2}')
+    #OUTPUT=$(iw dev | awk '{if ($1=="Interface") print $2}')
+    OUTPUT="interface1 interface2"
     echo -e $WHITE
     if [ ${#OUTPUT} == 0 ]
     then
@@ -40,7 +41,8 @@ function w_interfaces(){
     fi
 }
 
-#Comprueba si el argumento que le pasamos es un numero
+#Comprueba si la interface que elige es valida
+#Si es un valor numerico y si este esta dentro del rango de interfaces
 function is_number(){
     re='^[0-9]+$'
     IS=false
@@ -58,6 +60,18 @@ function is_number(){
 }
 
 
+#Cambiar interfaz a modo promiscuo
+function monitoring_mode(){
+    ifconfig $1 down
+    ifconfig $1 mode monitor
+    ifconfig $1 up
+    #Matamos aquellos procesos que puedan dar problemas
+    #airmon-ng check kill
+    #Ejecutamos modo monitoreo
+    #airmon-ng start $1
+}
+
+#Inicio Script
 titulo
 
 #Mostramos interfaces inalambricas disponibles
@@ -65,10 +79,8 @@ echo -e $BOLD_BLUE
 echo -e " Interfaces inalambricas disponibles:"
 w_interfaces
 echo ""
-#echo -e -n " Elige una interface $BOLD_WHITE\033[5m>\033[0m"
-#read INTERFACE 
-echo "Rango $RANGO"
-#Pedimos al usuario una de las interfaces
+
+#Pedimos al usuario que elija una de las interfaces
 ES_NUMERO=false
 while [ "$ES_NUMERO" = false ]
 do
@@ -77,5 +89,13 @@ do
     is_number $INTERFACE
     ES_NUMERO=$IS
 done
+#clear
 
-echo -e " Interface: $INTERFACE"
+#Nos guardamos el nombre de la interfaz que ha decidido elegir
+arr=(${OUTPUT})
+INT_NAME=${arr[$INTERFACE-1]}
+
+#Pasamos interface a modo monitoreo
+monitoring_mode $INT_NAME
+
+
