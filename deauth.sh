@@ -43,4 +43,9 @@ titulo
 echo -e $BOLD_BLUE
 echo -e " Interfaces inalambricas disponibles:"
 w_interfaces
+echo ""
+echo -e -n " Elige una interface $BOLD_WHITE\033[5m>\033[0m"
+read INTERFACE
+if 
+echo " Has escogido la inerface $INTERFACE"
 
