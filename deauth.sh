@@ -8,6 +8,7 @@ BOLD_PURPLE="\e[1;35m"
 BOLD_YELLOW="\e[1;33m"
 BOLD_BLUE="\e[1;36m"
 
+#Titulo del script
 function titulo(){
     echo -e $BOLD_RED
     echo  " ______                        __                            __    __ "
@@ -23,6 +24,7 @@ function titulo(){
 }
 
 #Muestra las diferentes interfaces inalambricas disponibles
+RANGO=1
 function w_interfaces(){
     OUTPUT=$(iw dev | awk '{if ($1=="Interface") print $2}')
     i=1
@@ -33,13 +35,33 @@ function w_interfaces(){
     else
 	for interface in ${OUTPUT}
 	do
-	    echo -e "   $BOLD_WHITE $i.$WHITE $interface"
-	    i=$((i+1))
+	    echo -e "   $BOLD_WHITE $RANGO.$WHITE $interface"
+	    RANGO=$((RANGO+1))
 	done
     fi
 }
 
+#Comprueba si el argumento que le pasamos es un numero
+function is_number(){
+    re='^[0-9]+$'
+    is=false
+    if [[ $1 =~ $re ]]
+    then
+        if [ $1 -gt $RANGO ] || [ $1 -lt 1 ]
+        then
+            echo -e "$BOLD_RED Error: $WHITE El valor introducido esta fuera del rango"
+        fi
+        is = true
+    else
+        echo -e "$BOLD_RED Error: $WHITE Introduce un valor numérico"
+    fi
+    return is
+}
+
+
 titulo
+
+#Mostramos interfaces inalambricas disponibles
 echo -e $BOLD_BLUE
 echo -e " Interfaces inalambricas disponibles:"
 w_interfaces
@@ -49,3 +71,14 @@ read INTERFACE
 if 
 echo " Has escogido la inerface $INTERFACE"
 
+#Pedimos al usuario una de las interfaces
+ES_NUMERO=false
+while [ ES_NUMERO = false ]
+do
+    echo -e -n " Elige una interface $BOLD_WHITE\033[5m>\033[0m"
+    read INTERFACE
+    is_number $INTERFACE
+    ES_NUMERO = $?
+done
+
+echo "Has escogido la interfaz $INTERFACE"
