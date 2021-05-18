@@ -26,8 +26,8 @@ function titulo(){
 #Muestra las diferentes interfaces inalambricas disponibles
 RANGO=0
 function w_interfaces(){
-    #OUTPUT=$(iw dev | awk '{if ($1=="Interface") print $2}')
-    OUTPUT="interface1 interface2"
+    OUTPUT=$(iw dev | awk '{if ($1=="Interface") print $2}')
+    #OUTPUT="interface1 interface2"
     echo -e $WHITE
     if [ ${#OUTPUT} == 0 ]
     then
@@ -62,13 +62,19 @@ function is_number(){
 
 #Cambiar interfaz a modo promiscuo
 function monitoring_mode(){
-    ifconfig $1 down
-    ifconfig $1 mode monitor
-    ifconfig $1 up
+    ip link set $1 down
+    iw $1 set monitor none
+    ip link set $1 up
     #Matamos aquellos procesos que puedan dar problemas
     #airmon-ng check kill
     #Ejecutamos modo monitoreo
     #airmon-ng start $1
+}
+
+function manage_mode(){
+    ip link set $1 down
+    iw $1 set type managed
+    ip link set $1 up
 }
 
 #Inicio Script
@@ -93,9 +99,12 @@ done
 
 #Nos guardamos el nombre de la interfaz que ha decidido elegir
 arr=(${OUTPUT})
+echo -e ${arr[$INTERFACE-1]}
 INT_NAME=${arr[$INTERFACE-1]}
 
 #Pasamos interface a modo monitoreo
 monitoring_mode $INT_NAME
-
+iw dev
+manage_mode $INT_NAME
+iw dev
 
