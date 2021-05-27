@@ -8,6 +8,8 @@ BOLD_PURPLE="\e[1;35m"
 BOLD_YELLOW="\e[1;33m"
 BOLD_BLUE="\e[1;36m"
 
+#ZONA DE FUNCIONES
+
 #Titulo del script
 function titulo(){
     echo -e $BOLD_RED
@@ -71,22 +73,29 @@ function monitoring_mode(){
     #airmon-ng start $1
 }
 
+#Cambiare interface a modo normal
 function manage_mode(){
     ip link set $1 down
     iw $1 set type managed
     ip link set $1 up
 }
 
-#Inicio Script
+#------------------------------------------------------------------------------------------------
+
+#INICIO SCRIPT
 titulo
 
 #Mostramos interfaces inalambricas disponibles
+
 echo -e $BOLD_BLUE
 echo -e " Interfaces inalambricas disponibles:"
 w_interfaces
 echo ""
 
+#---------------------------------------------
+
 #Pedimos al usuario que elija una de las interfaces
+
 ES_NUMERO=false
 while [ "$ES_NUMERO" = false ]
 do
@@ -95,16 +104,50 @@ do
     is_number $INTERFACE
     ES_NUMERO=$IS
 done
-#clear
+
+#--------------------------------------------------
 
 #Nos guardamos el nombre de la interfaz que ha decidido elegir
+
 arr=(${OUTPUT})
 echo -e ${arr[$INTERFACE-1]}
 INT_NAME=${arr[$INTERFACE-1]}
 
+#-------------------------------------------------------------
+
 #Pasamos interface a modo monitoreo
+
+echo -e "$INT_NAME va a pasar a modo monitoreo"
 monitoring_mode $INT_NAME
-iw dev
-manage_mode $INT_NAME
-iw dev
+#iw dev
+
+#----------------------------------
+
+#Vamos a ver si el usuario ya sabe el bssid a atacar o no
+SI_NO=test
+while [[ "$SI_NO" != "S" && "$SI_NO" != "s" && "$SI_NO" != "n" && "$SI_NO" != "N" ]]
+do
+    echo -e -n " ¿Conoce el BSSID del router que quiere atacar?(S/N) $BOLD_WHITE\033[5m>\033[0m"
+    read SI_NO
+done
+
+if [[ "$SI_NO" == "S" || "$SI_NO" == "s" ]]
+then
+    echo -e -n " Introduce BBSID $BOLD_WHITE\033[5m>\033[0m"
+    read BSSID
+    #Atacar directamente al BSSID
+    #Vamos a obtener que terminal usa para poder abrir el airodump en otra ventana
+    TERM=$(ps -o comm= -p "$(($(ps -o ppid= -p "$(($(ps -o sid= -p "$$")))")))")
+    konsole -e airodump-ng -w info --output-format csv wlp1s0 -d $BSSID
+    #NO HACER NADA DE LO ANTERIOR
+    #PROBAR CON
+    screen -d -m airodump-ng -w info --output-format csv $INT_NAME -d $BSSID
+else
+    #Abrir ventana airodump
+    echo "de momento no hace nada"
+fi
+
+echo "programa continua"
+
+
 
