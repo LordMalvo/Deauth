@@ -64,8 +64,8 @@ function is_number(){
 
 #Cambiar interfaz a modo promiscuo
 function monitoring_mode(){
-    #Matamos aquellos procesos que puedan dar problemas
     airmon-ng check kill
+    sleep 2
     #Ejecutamos modo monitoreo
     airmon-ng start $1
 }
@@ -191,4 +191,5 @@ fi
 
 echo " Restaurando interface a modo normal"
 manage_mode $INT_NAME
+service network-manager start
 
