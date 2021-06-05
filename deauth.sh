@@ -34,6 +34,7 @@ function w_interfaces(){
     if [ ${#OUTPUT} == 0 ]
     then
         echo -e "$BOLD_RED Error: $WHITE No se han encontrado interfaces inalambricas, no es posible continuar con el ataque"
+	exit(0)
     else
 	for interface in ${OUTPUT}
 	do
